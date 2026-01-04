@@ -9,6 +9,7 @@
 [![WireGuard](https://img.shields.io/badge/WireGuard-VPN-88171a.svg)](https://www.wireguard.com/)
 
 ---
+![Скриншот интерфейса](https://raw.githubusercontent.com/erkin-top/Rug-Panel/main/screen.png)
 
 ## 📋 Возможности
 
