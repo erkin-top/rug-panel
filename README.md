@@ -1,4 +1,7 @@
-![Скриншот интерфейса](https://raw.githubusercontent.com/erkin-top/Rug-Panel/refs/heads/main/static/favicon.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/erkin-top/Rug-Panel/main/static/favicon.png" alt="Лого">
+</p>
+
 
 # 🔐 Rug-Panel
 
