@@ -1,0 +1,130 @@
+{% if success %}
+<div class="alert alert-success alert-dismissible">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    {{ success }}
+</div>
+{% endif %}
+
+{% if users %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>{{ t.users.username }}</th>
+            <th>{{ t.users.role }}</th>
+            <th>{{ t.users.status }}</th>
+            <th>{{ t.users.created }}</th>
+            <th>{{ t.users.last_login }}</th>
+            <th>{{ t.users.actions }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr class="{% if not u.is_active %}row-disabled{% endif %}">
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar {% if not u.is_active %}inactive{% endif %}">
+                        {{ u.username[0].upper() }}
+                    </div>
+                    <span>{{ u.username }}</span>
+                </div>
+            </td>
+            <td>
+                {% if u.is_admin %}
+                <span class="badge badge-primary">{{ t.profile.role_admin }}</span>
+                {% else %}
+                <span class="badge badge-secondary">{{ t.profile.role_user }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if u.is_active %}
+                <span class="badge badge-success">{{ t.users.active }}</span>
+                {% else %}
+                <span class="badge badge-danger">{{ t.peer.disabled }}</span>
+                {% endif %}
+            </td>
+            <td>{{ u.created_at[:10] if u.created_at else '-' }}</td>
+            <td>{{ u.last_login[:16].replace('T', ' ') if u.last_login else t.profile.never }}</td>
+            <td>
+                {% if u.id != current_user_id %}
+                <div class="action-buttons">
+                    <button class="btn-icon" title="{{ t.users.edit }}"
+                            hx-get="/users/{{ u.id }}/edit-form"
+                            hx-target="#modal-container"
+                            hx-swap="innerHTML">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="btn-icon {% if u.is_active %}warning{% else %}success{% endif %}" 
+                            title="{% if u.is_active %}{{ t.users.toggle_active_disable }}{% else %}{{ t.users.toggle_active_enable }}{% endif %}"
+                            hx-post="/users/{{ u.id }}/toggle-active"
+                            hx-target="#users-list"
+                            hx-swap="innerHTML">
+                        {% if u.is_active %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="5" width="22" height="14" rx="7" ry="7"/>
+                            <circle cx="16" cy="12" r="3"/>
+                        </svg>
+                        {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="5" width="22" height="14" rx="7" ry="7"/>
+                            <circle cx="8" cy="12" r="3"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    
+                    <button class="btn-icon" title="{{ t.users.toggle_role_confirm }}"
+                            onclick="showConfirmModal({
+                                title: '{{ t.users.toggle_role_title }}',
+                                message: '{{ t.users.toggle_role_message }}'.replace('{username}', '{{ u.username }}'),
+                                warning: {% if u.is_admin %}'{{ t.users.toggle_role_warning_demote }}'{% else %}'{{ t.users.toggle_role_warning_promote }}'{% endif %},
+                                confirmText: '{{ t.users.toggle_role_confirm }}',
+                                actionType: 'warning',
+                                hxMethod: 'post',
+                                hxUrl: '/users/{{ u.id }}/toggle-admin',
+                                hxTarget: '#users-list',
+                                hxSwap: 'innerHTML'
+                            })">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z"/>
+                            <path d="M12 11a3 3 0 0 0 3-3"/>
+                            <path d="M9 8a3 3 0 0 0 3 3"/>
+                        </svg>
+                    </button>
+                    
+                    <button class="btn-icon danger" title="{{ t.users.delete }}"
+                            onclick="showConfirmModal({
+                                title: '{{ t.users.delete_user_title }}',
+                                message: '{{ t.users.delete_user_message }}'.replace('{username}', '{{ u.username }}'),
+                                warning: '{{ t.users.delete_user_warning }}',
+                                confirmText: '{{ t.users.delete_user_confirm }}',
+                                actionType: 'danger',
+                                hxMethod: 'delete',
+                                hxUrl: '/users/{{ u.id }}',
+                                hxTarget: '#users-list',
+                                hxSwap: 'innerHTML'
+                            })">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+                {% else %}
+                <span class="text-muted">{{ t.users.you }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>{{ t.users.no_users }}</p>
+</div>
+{% endif %}

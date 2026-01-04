@@ -1,0 +1,90 @@
+<div class="modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ t.users.form_title_edit }}</h2>
+            <button class="btn-close" onclick="closeModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="user-profile-header">
+                <div class="user-avatar-large">
+                    {{ target_user.username[0].upper() }}
+                </div>
+                <div class="user-details">
+                    <h3 class="user-details-title">{{ target_user.username }}</h3>
+                    <div class="user-status-badges">
+                        {% if target_user.is_admin %}
+                        <span class="badge badge-primary">{{ t.profile.role_admin }}</span>
+                        {% else %}
+                        <span class="badge badge-secondary">{{ t.profile.role_user }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section user-edit-section">
+                <h4 class="form-section-title user-edit-section-title">{{ t.users.subtitle }}</h4>
+                <div class="toggles-group">
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" 
+                                   hx-post="/users/{{ target_user.id }}/toggle-active"
+                                   hx-target="#users-list"
+                                   hx-swap="innerHTML"
+                                   {% if target_user.is_active %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-label">
+                            <strong>{{ t.users.active }}</strong>
+                            <span>{{ t.users.subtitle }}</span>
+                        </div>
+                    </div>
+
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" 
+                                   hx-post="/users/{{ target_user.id }}/toggle-admin"
+                                   hx-target="#users-list"
+                                   hx-swap="innerHTML"
+                                   {% if target_user.is_admin %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="toggle-label">
+                            <strong>{{ t.users.form_is_admin }}</strong>
+                            <span>{{ t.users.form_admin_hint }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="form-section-title user-edit-section-title">{{ t.profile.change_password }}</h4>
+                <form hx-post="/users/{{ target_user.id }}/change-password"
+                      hx-target="#user-edit-result"
+                      hx-swap="innerHTML">
+                    <div class="form-group">
+                        <label for="new_password">{{ t.profile.new_password }}</label>
+                        <div class="input-group">
+                            <input type="password" id="new_password" name="new_password" class="form-control"
+                                   placeholder="{{ t.users.form_password_placeholder }}" minlength="6" required
+                                   >
+                            <button type="submit" class="btn btn-primary">
+                                {{ t.common.save }}
+                            </button>
+                        </div>
+                    </div>
+                    <div id="user-edit-result" class="user-edit-result"></div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal()">{{ t.common.close }}</button>
+        </div>
+    </div>
+</div>

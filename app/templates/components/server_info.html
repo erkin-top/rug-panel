@@ -1,0 +1,69 @@
+<div class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                    <line x1="6" y1="6" x2="6.01" y2="6"/>
+                    <line x1="6" y1="18" x2="6.01" y2="18"/>
+                </svg>
+                {{ t.modal.server_info_title }}
+            </h2>
+            <button class="btn-close" onclick="closeModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="server-info-grid">
+                <div class="info-item">
+                    <span class="info-label">{{ t.modal.public_key }}</span>
+                    <code class="info-value copyable" onclick="copyToClipboard(this)">
+                        {{ server.public_key }}
+                    </code>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">{{ t.modal.server_address }}</span>
+                    <span class="info-value">{{ server.address }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">{{ t.modal.port }}</span>
+                    <span class="info-value">{{ server.listen_port }}</span>
+                </div>
+                
+                {% if server.dns %}
+                <div class="info-item">
+                    <span class="info-label">DNS</span>
+                    <span class="info-value">{{ server.dns }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeModal()">
+                {{ t.modal.close }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function closeModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) modal.remove();
+}
+
+function copyToClipboard(element) {
+    navigator.clipboard.writeText(element.textContent.trim()).then(() => {
+        element.classList.add('copied');
+        setTimeout(() => element.classList.remove('copied'), 2000);
+    });
+}
+</script>

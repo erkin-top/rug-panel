@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.server.title }} | {{ t.app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div class="header-title">
+            <h1>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                    <line x1="6" y1="6" x2="6.01" y2="6"/>
+                    <line x1="6" y1="18" x2="6.01" y2="18"/>
+                </svg>
+                {{ t.server.title }}
+            </h1>
+            <p>{{ t.server.subtitle }}</p>
+        </div>
+        
+        <div class="header-actions">
+            <!-- Кнопки управления сервером перемещены в боковую панель -->
+            <!-- Скрытая форма для импорта -->
+                        <form id="import-form" class="import-form-hidden"
+                                    hx-post="/server/import"
+                                    hx-target="#server-result"
+                                    hx-swap="innerHTML"
+                                    hx-encoding="multipart/form-data">
+                              <input type="file" id="import-file" name="config_file" accept=".conf" class="file-input-hidden" tabindex="-1" aria-hidden="true"
+                                  onchange="if (this.files && this.files.length) { if (this.form.requestSubmit) { this.form.requestSubmit(); } else { this.form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true})); } }">
+                <input type="hidden" name="create_backup" value="true">
+            </form>
+        </div>
+    </div>
+    
+    <div id="server-result"></div>
+    
+    {% if not config_exists %}
+    <div class="alert alert-warning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+            <strong>{{ t.server.config_not_found }}</strong>
+            <p>{{ t.server.config_not_found_desc }} <a href="/server/install">{{ t.server.create_new_config }}</a></p>
+        </div>
+    </div>
+    {% else %}
+    
+    <div class="settings-layout">
+        <!-- Левая колонка: Основные настройки -->
+        <div class="settings-main">
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                        {{ t.server.interface_config }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form id="server-settings-form"
+                          hx-post="/server/settings/update"
+                          hx-target="#server-result"
+                          hx-swap="innerHTML"
+                          class="form-grid">
+                        
+                        <div class="form-section">
+                            <h4 class="form-section-title">{{ t.server.network_params }}</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="address">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                            <path d="M22 6l-10 7L2 6"></path>
+                                        </svg>
+                                        {{ t.server.server_address }}
+                                    </label>
+                                    <input type="text" id="address" name="address" class="form-control"
+                                         value="{{ interface.get('Address', default_vpn_address) }}"
+                                           placeholder="10.0.0.1/24" required>
+                                    <small>{{ t.server.internal_address_hint }}</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="listen_port">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="M12 6v6l4 2"></path>
+                                        </svg>
+                                        {{ t.server.port_udp }}
+                                    </label>
+                                    <input type="number" id="listen_port" name="listen_port" class="form-control"
+                                         value="{{ interface.get('ListenPort', default_wg_port) }}"
+                                           min="1" max="65535" required>
+                                    <small>{{ t.server.port_hint }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="dns">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                        </svg>
+                                        {{ t.server.dns_servers }}
+                                    </label>
+                                    <input type="text" id="dns" name="dns" class="form-control"
+                                         value="{{ interface.get('DNS', default_dns) }}"
+                                           placeholder="77.88.8.8, 8.8.8.8">
+                                    <small>{{ t.server.dns_servers_hint }}</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="server_endpoint">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                        </svg>
+                                        {{ t.server.external_address }}
+                                    </label>
+                                    <input type="text" id="server_endpoint" name="server_endpoint" class="form-control"
+                                           value="{{ interface.get('_server_endpoint', detected_ip) }}"
+                                           placeholder="{{ detected_ip }}"
+                                           {% if env_endpoint_set %}disabled title="{{ t.server.locked_in_env }}"{% endif %}>
+                                    {% if env_endpoint_set %}
+                                    <small class="text-success">✓ {{ t.server.locked_in_env }}</small>
+                                    {% else %}
+                                    <small>{{ t.server.external_address_hint }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="network_interface">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                    </svg>
+                                    {{ t.server.network_interface_wan }}
+                                </label>
+                                <input type="text" id="network_interface" name="network_interface" class="form-control"
+                                       value="{{ server_mode.get('network_interface', detected_interface) }}"
+                                       placeholder="{{ detected_interface }}">
+                                <small>{{ t.server.network_interface_hint }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h4 class="form-section-title">{{ t.server.work_mode }}</h4>
+                            <div class="toggles-group">
+                                <div class="toggle-item">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="enable_nat" name="enable_nat" value="true"
+                                               {% if server_mode.get('enable_nat', False) %}checked{% endif %}
+                                               onchange="updatePostRules();">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <div class="toggle-label">
+                                        <strong>{{ t.server.nat_internet }}</strong>
+                                        <span>{{ t.server.nat_internet_hint }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="toggle-item">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="enable_forwarding" name="enable_forwarding" value="true"
+                                               {% if server_mode.get('enable_forwarding', False) %}checked{% endif %}
+                                               onchange="updatePostRules();">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <div class="toggle-label">
+                                        <strong>{{ t.server.forwarding_lan }}</strong>
+                                        <span>{{ t.server.forwarding_lan_hint }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mode-info">
+                                <div class="mode-status" id="mode-status-text">
+                                    {{ t.server.mode_select_hint }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section collapsed">
+                            <summary class="form-section-summary" onclick="this.parentElement.classList.toggle('collapsed')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                                {{ t.server.advanced_settings }}
+                            </summary>
+                            <div class="form-section-content">
+                                <div class="form-group">
+                                    <label for="postup">PostUp</label>
+                                    <textarea id="postup" name="postup" rows="4" class="form-control"
+                                              placeholder="iptables -A FORWARD -i %i -j ACCEPT; ...">{{ interface.get('PostUp', '') }}</textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="postdown">PostDown</label>
+                                    <textarea id="postdown" name="postdown" rows="4" class="form-control"
+                                              placeholder="iptables -D FORWARD -i %i -j ACCEPT; ...">{{ interface.get('PostDown', '') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                {{ t.server.save_changes }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка: Статус и Инфо -->
+        <div class="settings-sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        {{ t.server.information }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="system-info-list">
+                        <div class="info-item">
+                            <span class="label">{{ t.server.version }}</span>
+                            <span class="value">{{ panel_version }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">{{ t.server.interface }}</span>
+                            <code class="value">{{ wg_interface }}</code>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">{{ t.server.config_path }}</span>
+                            <code class="value" title="{{ config_path }}">{{ config_path }}</code>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">{{ t.server.user }}</span>
+                            <span class="value">{{ user.username }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="env-info">
+                        <h4>{{ t.server.env_variables }}</h4>
+                        <div class="env-tags">
+                            <span class="env-tag" title="{{ t.env_vars.config_path }}">WG_CONFIG_PATH</span>
+                            <span class="env-tag" title="{{ t.env_vars.interface }}">WG_INTERFACE</span>
+                            <span class="env-tag" title="{{ t.env_vars.host }}">HOST</span>
+                            <span class="env-tag" title="{{ t.env_vars.port }}">PORT</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        {{ t.server.actions }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="actions-list">
+                        <button class="btn btn-success btn-block"
+                                onclick="showConfirmModal({
+                                    title: '{{ t.server.start_wg_title }}',
+                                    message: '{{ t.server.start_wg_message }}',
+                                    warning: '{{ t.server.start_wg_warning }}',
+                                    confirmText: '{{ t.server.start_confirm }}',
+                                    actionType: 'success',
+                                    hxMethod: 'post',
+                                    hxUrl: '/server/start',
+                                    hxTarget: '#server-result',
+                                    hxSwap: 'innerHTML'
+                                })">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            {{ t.server.start }}
+                        </button>
+                        
+                        <button class="btn btn-warning btn-block"
+                                onclick="showConfirmModal({
+                                    title: '{{ t.server.stop_wg_title }}',
+                                    message: '{{ t.server.stop_wg_message }}',
+                                    warning: '{{ t.server.stop_wg_warning }}',
+                                    confirmText: '{{ t.server.stop_confirm }}',
+                                    actionType: 'warning',
+                                    hxMethod: 'post',
+                                    hxUrl: '/server/stop',
+                                    hxTarget: '#server-result',
+                                    hxSwap: 'innerHTML'
+                                })">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16"/>
+                                <rect x="14" y="4" width="4" height="16"/>
+                            </svg>
+                            {{ t.server.stop }}
+                        </button>
+                        
+                        <button class="btn btn-secondary btn-block"
+                                onclick="showConfirmModal({
+                                    title: '{{ t.server.apply_settings_title }}',
+                                    message: '{{ t.server.apply_settings_message }}',
+                                    warning: '{{ t.server.apply_settings_warning }}',
+                                    confirmText: '{{ t.server.apply_confirm }}',
+                                    actionType: 'primary',
+                                    hxMethod: 'post',
+                                    hxUrl: '/server/restart',
+                                    hxTarget: '#server-result',
+                                    hxSwap: 'innerHTML'
+                                })">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                            {{ t.server.apply_config }}
+                        </button>
+                        
+                        <div class="actions-divider"></div>
+                        
+                        <button class="btn btn-outline btn-block"
+                                onclick="document.getElementById('import-file').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            {{ t.server.import }}
+                        </button>
+
+                        <a href="/server/backup" class="btn btn-outline btn-block" download>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            {{ t.server.download_backup }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function updatePostRules() {
+    const enableNatEl = document.getElementById('enable_nat');
+    const enableForwardingEl = document.getElementById('enable_forwarding');
+    const statusText = document.getElementById('mode-status-text');
+    
+    // Проверяем наличие элементов (они могут отсутствовать если конфиг не найден)
+    if (!enableNatEl || !enableForwardingEl || !statusText) {
+        return;
+    }
+    
+    const enableNat = enableNatEl.checked;
+    const enableForwarding = enableForwardingEl.checked;
+    
+    if (!enableNat && !enableForwarding) {
+        statusText.innerHTML = '<span class="text-muted">{{ t.server.mode_isolated_full }}</span>';
+    } else if (enableNat && !enableForwarding) {
+        statusText.innerHTML = '<span class="text-success">{{ t.server.mode_gateway }}</span>';
+    } else if (!enableNat && enableForwarding) {
+        statusText.innerHTML = '<span class="text-warning">{{ t.server.mode_local_network }}</span>';
+    } else {
+        statusText.innerHTML = '<span class="text-primary">{{ t.server.mode_full_access }}</span>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updatePostRules();
+});
+</script>
+{% endblock %}

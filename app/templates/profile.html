@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.profile.title }} | Rug-Panel{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div class="header-title">
+            <h1>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                {{ t.profile.title }}
+            </h1>
+            <p>{{ t.profile.subtitle }}</p>
+        </div>
+    </div>
+    
+    <div class="profile-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ t.profile.info_title }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        {{ user.username[0].upper() }}
+                    </div>
+                    <div class="profile-details">
+                        <h2>{{ user.username }}</h2>
+                        <p>
+                            {% if user.is_admin %}
+                            <span class="badge badge-primary">{{ t.profile.role_admin }}</span>
+                            {% else %}
+                            <span class="badge badge-secondary">{{ t.profile.role_user }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">{{ t.profile.created }}</span>
+                        <span class="info-value">{{ user.created_at[:10] if user.created_at else '-' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">{{ t.profile.last_login }}</span>
+                        <span class="info-value">{{ user.last_login[:16].replace('T', ' ') if user.last_login else t.profile.never }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

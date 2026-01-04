@@ -1,0 +1,91 @@
+services:
+  rug-panel:
+    image: erkintop/rug-panel:1.4.4
+    container_name: rug-panel
+    hostname: rug-panel
+    restart: unless-stopped
+    networks:
+      rug-net:
+        ipv4_address: 10.42.42.2
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    ports:
+      - "8000:8000/tcp"
+      - "51820:51820/udp"
+    environment:
+      # Сервер
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+
+      # Безопасность: ОБЯЗАТЕЛЬНО заменить SECRET_KEY на безопасное значение
+      - SECRET_KEY=CHANGE_ME_REPLACE_WITH_STRONG_SECRET
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+      # WireGuard
+      - WG_CONFIG_PATH=/app/data/wg0.conf
+      - WG_INTERFACE=wg0
+      - DEFAULT_WG_PORT=51820
+      - DEFAULT_DNS=77.88.8.8, 8.8.8.8
+      - DEFAULT_ALLOWED_IPS=0.0.0.0/0, ::/0
+      - DEFAULT_PERSISTENT_KEEPALIVE=25
+
+      # Явно укажите endpoint, если хотите фиксированный внешний адрес
+      - WG_SERVER_ENDPOINT=
+
+      # Пути внутри контейнера
+      - DATA_DIR=/app/data
+      - DATABASE_PATH=/app/data/panel.db
+
+      # Кэш
+      - CONFIG_CACHE_TTL=5
+      - STATUS_CACHE_TTL=2
+      - QR_CACHE_SIZE=100
+
+      # Версия/язык
+      - PANEL_VERSION=1.4.3
+      - LANGUAGE=ru
+
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv6.conf.default.forwarding=1
+
+    volumes:
+      - ./data:/app/data
+      - /lib/modules:/lib/modules:ro
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/login"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  rug-net:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.42.42.0/24
+          gateway: 10.42.42.1
+        - subnet: fdcc:ad94:bacf:61a3::/64
+
+# Примечания:
+# - Перед запуском замените `SECRET_KEY` на безопасное значение, например
+#   `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+#   Или: openssl rand -base64 32
+# - Файлы данных сохраняются в локальной папке `./data`.

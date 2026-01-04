@@ -1,0 +1,111 @@
+<div class="modal-overlay">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                {{ t.peer_created.title }}
+            </h2>
+            <button class="btn-close" onclick="closeModalAndRefresh()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="success-message-compact">
+                <div class="success-icon-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <div class="success-text">
+                    <h3>{{ peer.get('_name', t.peer.client) }}</h3>
+                    <p>{{ t.peer_created.save_hint }}</p>
+                </div>
+            </div>
+            
+            <div class="config-container-balanced">
+                <div class="qr-section-large">
+                    <div class="qr-code-large">
+                        <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+                    </div>
+                    <p>{{ t.peer.scan_qr_short }}</p>
+                </div>
+                
+                <div class="config-section-compact">
+                    <div class="config-block-with-copy">
+                        <button class="copy-btn-icon" 
+                                onclick="copyConfig(this)" 
+                                data-config="{{ client_config | e }}"
+                                title="{{ t.tooltips.copy_config }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                        <pre>{{ client_config }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="downloadConfig('{{ peer.get('_name', 'client') }}.conf', `{{ client_config | replace('\n', '\\n') }}`)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                {{ t.peer_created.button_download }}
+            </button>
+            <button class="btn btn-outline" onclick="closeModalAndRefresh()">
+                {{ t.peer_created.button_close }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function closeModalAndRefresh() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) modal.remove();
+    htmx.ajax('GET', '/peers/', {target: '#peers-container', swap: 'innerHTML'});
+}
+
+function copyConfig(btn) {
+    const config = btn.dataset.config;
+    navigator.clipboard.writeText(config).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        `;
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+            `;
+        }, 2000);
+    });
+}
+
+function downloadConfig(filename, content) {
+    const blob = new Blob([content.replace(/\\n/g, '\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>

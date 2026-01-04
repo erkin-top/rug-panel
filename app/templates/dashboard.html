@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.dashboard.title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Заголовок и статистика -->
+    <div class="dashboard-header">
+        <div class="header-title">
+            <h1>
+                <img class="page-title-icon" src="{{ favicon_path }}" alt="VPN">
+                {{ t.dashboard.title }}
+            </h1>
+            <p>{{ t.dashboard.subtitle }}</p>
+        </div>
+        
+        <div class="stats-cards" hx-get="/api/stats" hx-trigger="every 30s" hx-swap="innerHTML">
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.total }}</span>
+                    <span class="stat-label">{{ t.dashboard.stats.total }}</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon online">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.online }}</span>
+                    <span class="stat-label">{{ t.dashboard.stats.online }}</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon offline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.offline }}</span>
+                    <span class="stat-label">{{ t.dashboard.stats.offline }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if not config_found %}
+    <!-- Предупреждение о конфиге -->
+    <div class="alert alert-warning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div>
+            <strong>{{ t.errors.config_not_found_title }}</strong>
+            <p>{{ t.errors.config_not_found_message }}</p>
+            <code>{{ config_path }}</code>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if error %}
+    <div class="alert alert-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        <div>
+            <strong>{{ t.errors.error_title }}</strong>
+            <p>{{ error }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Панель инструментов -->
+    <div class="toolbar">
+        <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" class="search-input" placeholder="{{ t.common.search_placeholder }}" onkeyup="filterPeers(this.value)">
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <button class="btn btn-outline"
+                    hx-get="/peers/"
+                    hx-target="#peers-container"
+                    hx-swap="innerHTML">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+                <span class="desktop-only">{{ t.common.refresh }}</span>
+            </button>
+            
+            <button class="btn btn-primary" 
+                    hx-get="/peers/add-form" 
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span class="desktop-only">{{ t.dashboard.add_client }}</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Список клиентов -->
+    <div id="peers-container" 
+         hx-get="/peers/" 
+         hx-trigger="load, every 60s"
+         hx-swap="innerHTML">
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>{{ t.common.loading }}</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Фильтрация клиентов
+    function filterPeers(query) {
+        const peers = document.querySelectorAll('.peer-card');
+        query = query.toLowerCase();
+        
+        peers.forEach(peer => {
+            const name = peer.querySelector('.peer-name').textContent.toLowerCase();
+            // Also search in IP
+            const ip = peer.querySelector('.info-value') ? peer.querySelector('.info-value').textContent.toLowerCase() : '';
+            
+            if (name.includes(query) || ip.includes(query)) {
+                peer.style.display = '';
+            } else {
+                peer.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

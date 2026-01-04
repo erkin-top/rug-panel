@@ -1,0 +1,102 @@
+<div class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                {{ t.peer_form.title_edit }}: {{ peer.get('_name', t.peer.client) }}
+            </h2>
+            <button class="btn-close" onclick="closeModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <form hx-put="/peers/update?key={{ peer.PublicKey | urlencode_full }}" 
+              hx-target="#peers-container"
+              hx-swap="innerHTML"
+              hx-on::after-request="closeModal()"
+              class="modal-form">
+            
+            <div class="form-group">
+                <label for="name">{{ t.peer_form.name }} *</label>
+                <input type="text" id="name" name="name" required 
+                       value="{{ peer.get('_name', '') }}"
+                       placeholder="{{ t.peer_form.name_placeholder }}"
+                       maxlength="50"
+                       pattern="[A-Za-z0-9_\-\s\.]+"
+                       title="{{ t.peer_form.name_hint }}">
+                <small>{{ t.peer_form.name_hint }}</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="allowed_ips">{{ t.peer_form.allowed_ips }} *</label>
+                <input type="text" id="allowed_ips" name="allowed_ips" 
+                       value="{{ peer.get('AllowedIPs', '') }}" required
+                       placeholder="{{ t.peer_form.allowed_ips_placeholder }}">
+                <small class="form-hint">
+                    {{ t.peer_form.allowed_ips_hint_edit }}
+                    <br>{{ t.peer_form.allowed_ips_example_edit | safe }}
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label for="persistent_keepalive">{{ t.peer_form.keepalive }}</label>
+                <input type="number" id="persistent_keepalive" name="persistent_keepalive" 
+                       value="{{ peer.get('PersistentKeepalive', default_keepalive) }}" 
+                       min="0" max="65535">
+            </div>
+            
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" name="use_preshared_key" {% if peer.get('PresharedKey') %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <span class="toggle-label-text">{{ t.peer_form.use_preshared_key }}</span>
+                    <span class="toggle-label-hint">
+                        {% if peer.get('PresharedKey') %}
+                        {{ t.peer_form.preshared_key_current.replace('{key}', peer.PresharedKey[:16]) }}
+                        {% else %}
+                        {{ t.peer_form.preshared_key_new }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="public_key">{{ t.peer_form.public_key }}</label>
+                <input type="text" id="public_key" name="public_key" 
+                       value="{{ peer.PublicKey }}" required
+                       placeholder="{{ t.peer_form.public_key_placeholder }}"
+                       pattern="[A-Za-z0-9+/]{43}=">
+                <small class="form-hint warning">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    {{ t.peer_form.public_key_warning }}
+                </small>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal()">
+                    {{ t.peer_form.button_cancel }}
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    {{ t.peer_form.button_save }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

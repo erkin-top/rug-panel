@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.server.install_title }} | {{ t.app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div class="header-title">
+            <h1>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+                {{ t.server.install_title }}
+            </h1>
+            <p>{{ t.server.install_subtitle }}</p>
+        </div>
+    </div>
+    
+    <div id="install-result"></div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                {{ t.server.interface_config }}
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <div>
+                    <p>{{ t.server.install_description }}</p>
+                </div>
+            </div>
+            
+            <form id="install-form"
+                  hx-post="/server/install"
+                  hx-target="#install-result"
+                  hx-swap="innerHTML"
+                  class="form-grid">
+                
+                <div class="form-section">
+                    <h4 class="form-section-title">{{ t.server.network_params }}</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="address">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <path d="M22 6l-10 7L2 6"></path>
+                                </svg>
+                                {{ t.server.server_address }}
+                            </label>
+                            <input type="text" id="address" name="address" class="form-control"
+                                   value="{{ default_vpn_address }}"
+                                   placeholder="10.0.0.1/24" required>
+                            <small>{{ t.server.internal_address_hint }}</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="listen_port">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                                {{ t.server.port_udp }}
+                            </label>
+                            <input type="number" id="listen_port" name="listen_port" class="form-control"
+                                   value="51820"
+                                   min="1" max="65535" required>
+                            <small>{{ t.server.port_hint }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="network_interface">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom;">
+                                    <path d="M5 12h14"/>
+                                    <path d="M12 5l7 7-7 7"/>
+                                </svg>
+                                {{ t.server.network_interface_wan }}
+                            </label>
+                            <input type="text" id="network_interface" name="network_interface" class="form-control"
+                                   value="{{ detected_interface }}"
+                                   placeholder="eth0">
+                            <small>{{ t.server.network_interface_hint }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4 class="form-section-title">{{ t.server.work_mode }}</h4>
+                    <small class="form-section-hint">{{ t.server.mode_select_hint }}</small>
+                    
+                    <div class="mode-options">
+                        <div class="toggle-container">
+                            <label class="toggle-item">
+                                <input type="checkbox" id="enable_nat" name="enable_nat" value="true" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">
+                                    <strong>{{ t.server.nat_internet }}</strong>
+                                    <span class="toggle-hint">{{ t.server.nat_internet_hint }}</span>
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="toggle-container">
+                            <label class="toggle-item">
+                                <input type="checkbox" id="enable_forwarding" name="enable_forwarding" value="true" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">
+                                    <strong>{{ t.server.forwarding_lan }}</strong>
+                                    <span class="toggle-hint">{{ t.server.forwarding_lan_hint }}</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 8px;">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        {{ t.server.create_config_button }}
+                    </button>
+                    <a href="/server/settings" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 8px;">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        {{ t.common.cancel }}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// После успешного создания перенаправляем на страницу настроек
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'install-result') {
+        const successAlert = event.detail.target.querySelector('.alert-success');
+        if (successAlert) {
+            setTimeout(function() {
+                window.location.href = '/server/settings';
+            }, 2000);
+        }
+    }
+});
+</script>
+{% endblock %}
